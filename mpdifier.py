@@ -78,62 +78,70 @@ class Key: # enum
 
 # command classes to be registered to mpd
 
-class VolumeUp(mpdserver.Command):
-    def handle_args(self):
-        pressKey(Key.VK_VOLUME_UP)
+class Status(mpdserver.CommandItems):
+    def items(self):
+        return [("volume", 50)]
 
-class VolumeDown(mpdserver.Command):
-    def handle_args(self):
-        pressKey(Key.VK_VOLUME_DOWN)
+class SetVol(mpdserver.Command):
+    formatArg = [("vol", int)]
+    def handle_args(self, **args):
+        nv = args["vol"]
+        if nv < 50:
+            pressKey(Key.VK_VOLUME_DOWN)
+        else:
+            pressKey(Key.VK_VOLUME_UP)
+        
 
-class Mute(mpdserver.Command):
-    def handle_args(self):
-        pressKey(Key.VK_VOLUME_MUTE)
+#class VolumeUp(mpdserver.Command):
+#    def handle_args(self, **args):
+#        pressKey(Key.VK_VOLUME_UP)
+#
+#class VolumeDown(mpdserver.Command):
+#    def handle_args(self, **args):
+#        pressKey(Key.VK_VOLUME_DOWN)
+#
+#class Mute(mpdserver.Command):
+#    def handle_args(self, **args):
+#        pressKey(Key.VK_VOLUME_MUTE)
 
 
 class Play(mpdserver.Command):
-    def handle_args(self):
+    def handle_args(self, **args):
         pressKey(Key.VK_MEDIA_PLAY_PAUSE)
 
 class Pause(mpdserver.Command):
-    def handle_args(self):
+    def handle_args(self, **args):
         pressKey(Key.VK_MEDIA_PLAY_PAUSE)
 
 class Next(mpdserver.Command):
-    def handle_args(self):
+    def handle_args(self, **args):
         pressKey(Key.VK_MEDIA_NEXT_TRACK)
 
 class Previous(mpdserver.Command):
-    def handle_args(self):
+    def handle_args(self, **args):
         pressKey(Key.VK_MEDIA_PREV_TRACK)
 
 class Stop(mpdserver.Command):
-    def handle_args(self):
+    def handle_args(self, **args):
         pressKey(Key.VK_MEDIA_STOP)
 
 
 """ setup & usage of mpdserver """
 def main():
-    mpd = mpdserver.MpdServerDaemon(6600)
+    mpd = mpdserver.MpdServer(6600)
     mpd.requestHandler.RegisterCommand(mpdserver.Outputs)
-    #TODO: setvol command
-    #mpd.requestHandler.RegisterCommand(VolumeUp)
-    #mpd.requestHandler.RegisterCommand(VolumeDown)
-    #mpd.requestHandler.RegisterCommand(Mute)
+
+    mpd.requestHandler.RegisterCommand(SetVol)
 
     mpd.requestHandler.RegisterCommand(Play)
     mpd.requestHandler.RegisterCommand(Pause)
     mpd.requestHandler.RegisterCommand(Next)
     mpd.requestHandler.RegisterCommand(Previous)
     mpd.requestHandler.RegisterCommand(Stop)
+    mpd.requestHandler.RegisterCommand(Status)
     mpd.requestHandler.Playlist=mpdserver.MpdPlaylistDummy
 
-    try:
-        while mpd.wait(1):
-            pass
-    except KeyboardInterrupt:
-        print 'caught ctrl+c, aborting'
-        mpd.quit()
+    mpd.run()
 
 if __name__ == "__main__":
     main()
