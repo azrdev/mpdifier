@@ -21,7 +21,10 @@ class Key: # enum
 
 class Status(mpdserver.CommandItems):
     def items(self):
-        return [("volume", 50)]
+        return [
+            ("volume", 50),
+            ("state", "pause")
+        ]
 
 class SetVol(mpdserver.Command):
     muted = False # educated guess
